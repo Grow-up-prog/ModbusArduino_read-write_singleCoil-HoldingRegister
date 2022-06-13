@@ -1,8 +1,8 @@
 #include <ModbusMaster.h> 
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27,16,2); //menggunakan LCD 16x2
-#define MAX485_DE      13
-#define MAX485_RE_NEG  12
+#define MAX485_DE      3
+#define MAX485_RE_NEG  2
 
 int lastState1=LOW; //variabel penyimpan pembacaan state sebelumnya dari pin button
 int lastState2=LOW;
@@ -56,7 +56,6 @@ void loop()
     delay(200);
   }else if (nav == 2)
   {
-//    writeHoldingRegisterFreq20();
     uint8_t readFreq=node.readHoldingRegisters(0x31001,1);
     if(readFreq==node.ku8MBSuccess)
     {
@@ -67,26 +66,27 @@ void loop()
     }else{
       lcd.setCursor(0,1);
       lcd.print("Pembacaan Gagal");
-      Serial.println(node.getResponseBuffer(0x00));
     }
   }else if (nav == 3)
   {
-//    writeHoldingRegisterFreq10();
-    uint8_t readFreq=node.readHoldingRegisters(0x30001,1);      
+    uint8_t readFreq=node.readHoldingRegisters(0x30002,1);      
     lcd.setCursor(0,1);
     lcd.print("nilai FREQ");
     if(readFreq==node.ku8MBSuccess)
     {
       lcd.setCursor(12,1);
       lcd.print(node.getResponseBuffer(0x00));
+    }else{
+      lcd.setCursor(0,1);
+      lcd.print("Pembacaan Gagal");
     }
-    }
+   }
    else if (nav == 4)
   {    
     writeCoilLow();
     Serial.println("COIL STOP ON");
     delay(200);
   }
-  delay(150);
+  delay(1000);
   lcd.clear();
 }
