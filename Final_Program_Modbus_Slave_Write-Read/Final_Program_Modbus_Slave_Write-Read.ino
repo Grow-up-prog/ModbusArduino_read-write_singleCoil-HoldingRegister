@@ -1,92 +1,74 @@
-#include <ModbusMaster.h> 
-#include <LiquidCrystal_I2C.h>
-LiquidCrystal_I2C lcd(0x27,16,2); //menggunakan LCD 16x2
-#define MAX485_DE      3
-#define MAX485_RE_NEG  2
-
-int lastState1=LOW; //variabel penyimpan pembacaan state sebelumnya dari pin button
-int lastState2=LOW;
-int lastState3=LOW;
-int lastState4=LOW;
-int currentState1;int currentState2; int currentState3;int currentState4;
-const int button1=7;
-const int button2=6;
-const int button3=5;
-const int button4=4;
-int nav=0;
-
-ModbusMaster node;                    //object node for class ModbusMaster//write
-void setup()
+#define pinModBusDE     8// logic 1 untuk kirim data
+#define pinModBusRE     9// logic 0 untuk terima data
+byte arrayData[100];
+void kirimData()
 {
-  pinMode(button1,INPUT_PULLUP);
-  pinMode(button2,INPUT_PULLUP);
-  pinMode(button3,INPUT_PULLUP);
-  pinMode(button4,INPUT_PULLUP);
-  lcd.init();
-  lcd.backlight();
-  lcd.setCursor(0,0);
-  lcd.print("PROTOTIPE V1.1");
-  lcd.setCursor(0,1);
-  lcd.print("Modbus Master");
-  delay(1000);
-  lcd.clear();
-  pinMode(MAX485_RE_NEG, OUTPUT);
-  pinMode(MAX485_DE, OUTPUT);
-  digitalWrite(MAX485_RE_NEG, 0);
-  digitalWrite(MAX485_DE, 0);
-  Serial1.begin(9600);             //Baud Rate as 9600
-  Serial.begin(19200);
-  node.begin(1, Serial1);            //Slave ID as 1
-  node.preTransmission(preTransmission);         //Callback for configuring RS-485 Transreceiver correctly
-  node.postTransmission(postTransmission);
+  digitalWrite(pinModBusDE,HIGH);
+  digitalWrite(pinModBusRE,LOW);
 }
-void loop()
-{ 
-//readCoilStatus();
-//lcd.clear();
-  buttonA();
-  buttonB();  
-  buttonC();
-  buttonD();
-//  readFreq();
-  if (nav == 1)
+void terimaData()
+{
+  digitalWrite(pinModBusDE,HIGH);
+  digitalWrite(pinModBusRE,LOW);
+}
+ 
+//byte perintah[] = {0x01, 0x03, 0x00, 0x01, 0x00, 0x01, 0xD5, 0xCA};//readInputRegisters
+ byte perintahRun[] = {0x01, 0x05, 0x00, 0x00, 0xFF, 0x00, 0x8C, 0x3A};//write coil RUN
+ byte perintahStop[] = {0x01, 0x05, 0x00, 0x00, 0x00, 0x00, 0xCD, 0xCA};//write coil STOP
+
+void setup() {
+  pinMode(pinModBusDE, OUTPUT);
+  pinMode(pinModBusRE, OUTPUT);
+  Serial1.begin(9600);
+  Serial.begin(19200);
+//  ptr=bufferDataModbus;
+}
+
+void loop() {
+  
+  kirimData();
+  delay(100);
+  Serial1.write(perintahRun,sizeof(perintahRun));
+//delay(1);
+  terimaData();
+  long responModbus = millis()+1000;
+  while(!Serial1.available())
   {
-    writeCoilHigh();
-    Serial.println("COIL RUN ON");
-    delay(200);
-  }else if (nav == 2)
-  {
-    uint8_t readFreq=node.readHoldingRegisters(0x31001,1);
-    if(readFreq==node.ku8MBSuccess)
+    if(responModbus <millis())
     {
-      lcd.setCursor(0,1);
-      lcd.print("nilai FREQ");
-      lcd.setCursor(12,1);
-      lcd.print(node.getResponseBuffer(0x00));
-    }else{
-      lcd.setCursor(0,1);
-      lcd.print("Pembacaan Gagal");
+      break;//timeout
     }
-  }else if (nav == 3)
-  {
-    uint8_t readFreq=node.readHoldingRegisters(0x30002,1);      
-    lcd.setCursor(0,1);
-    lcd.print("nilai FREQ");
-    if(readFreq==node.ku8MBSuccess)
-    {
-      lcd.setCursor(12,1);
-      lcd.print(node.getResponseBuffer(0x00));
-    }else{
-      lcd.setCursor(0,1);
-      lcd.print("Pembacaan Gagal");
-    }
-   }
-   else if (nav == 4)
-  {    
-    writeCoilLow();
-    Serial.println("COIL STOP ON");
-    delay(200);
   }
-  delay(1000);
-  lcd.clear();
+  while(Serial1.available())
+  {
+    byte b = Serial1.read();
+//    Serial.println(b);
+    Serial.println(b,HEX);
+    delay(2);
+  }
+  Serial.print("=================\n");
+  delay(3000);
+//==================================   
+  kirimData();
+  delay(100);
+  Serial1.write(perintahStop,sizeof(perintahStop));
+//delay(1);
+  terimaData();
+  long responModbusStop = millis()+1000;
+  while(!Serial1.available())
+  {
+    if(responModbusStop <millis())
+    {
+      break;//timeout
+    }
+  }
+  while(Serial1.available())
+  {
+    byte b = Serial1.read();
+//    Serial.println(b);
+    Serial.println(b,HEX);
+    delay(2);
+  }
+  Serial.print("=================\n");
+  delay(3000);
 }
