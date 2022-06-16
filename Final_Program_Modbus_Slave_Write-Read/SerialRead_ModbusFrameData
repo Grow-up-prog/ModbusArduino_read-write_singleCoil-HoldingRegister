@@ -1,0 +1,45 @@
+#define pinModBusDE     9// logic 1 untuk kirim data
+#define pinModBusRE     10// logic 0 untuk terima data
+#include<SoftwareSerial.h>
+const int bufferSize=50;
+byte buf[bufferSize];
+SoftwareSerial pembacaan(11,8); //rx & tx
+
+void kirimData()
+{
+  digitalWrite(pinModBusDE,HIGH);
+  digitalWrite(pinModBusRE,LOW);
+}
+void terimaData()
+{
+  digitalWrite(pinModBusDE,LOW);
+  digitalWrite(pinModBusRE,LOW);
+}
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(pinModBusDE, OUTPUT);
+  pinMode(pinModBusRE, OUTPUT);
+pembacaan.begin(9600);
+Serial.begin(19200);
+}
+
+void loop() {
+  terimaData();
+  while(pembacaan.available()){
+//==============================
+  int nilai = pembacaan.read();
+  if(nilai>0){
+     Serial.println(nilai,HEX);    
+    }
+  }
+  delay(2000);
+    while(pembacaan.available()){
+//==============================
+  int nilai = pembacaan.read();
+  if(nilai>0){
+     Serial.println(nilai,HEX);    
+    }
+  }
+  delay(2000);
+}
