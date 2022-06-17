@@ -4,6 +4,7 @@
 const int bufferRequest=8;
 byte Request[bufferRequest];
 int readIndex=0;
+int readMaxIndex=16;
 SoftwareSerial pembacaan(11,8); //rx & tx
 
 void kirimData()
@@ -28,11 +29,13 @@ Serial.begin(19200);
 void loop() {
   while(pembacaan.available()){
     Request[readIndex]=pembacaan.read();
-    Serial.print(Request[readIndex],HEX);
+    Serial.print(Request[readIndex],HEX);  
+//    Serial.print("..");Serial.print(readIndex);Serial.print("..");
     readIndex++;
-//    Serial.flush();
-    }
+//    if(readIndex>=16){
+//      readIndex=0;
+//    }
+  }
   delay(2000);
-  Serial.println(" ");        
-//  Serial.println(readIndex);
+  Serial.println(" ");      
 }
