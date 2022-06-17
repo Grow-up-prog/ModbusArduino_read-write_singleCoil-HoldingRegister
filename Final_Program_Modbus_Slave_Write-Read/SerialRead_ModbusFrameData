@@ -32,7 +32,11 @@ void loop() {
 //    Serial.print(Request[readIndex],HEX);
     if(readIndex>=16){
       for(int i=0;i<=readIndex;i++){
+        if(i==9){
+          continue;
+        }
         Serial.print(Request[i],HEX);
+        
       }
      readIndex=0;
     }
@@ -40,19 +44,4 @@ void loop() {
   }
   Serial.println();
   delay(1000);
-/*
-  if(!pembacaan.available()){
-      for(int i=0;i<=8;i++){
-         Serial.print(Request[i],HEX);
-         delay(1);
-      }
-      Serial.println(" ");
-      for(int i=10;i<=16;i++){
-         Serial.print(Request[i],HEX);
-         delay(1);
-      }
-    delay(2000);
-    readIndex=0;
-    }
-*/
 } 
